@@ -17,6 +17,7 @@
     "express": "^5.1.0",
     "graphql": "^16.11.0",
     "graphql-request": "^6.1.0",
+    "jwt-decode": "^4.0.0",
     "nhost": "^0.1.11"
   },
   "devDependencies": {
