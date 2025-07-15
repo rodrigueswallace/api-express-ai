@@ -1,5 +1,6 @@
 import { Request, Response } from 'express'
 import { nhost } from '../services/nhost'
+import { GraphQLClient, gql } from 'graphql-request'
 
 export async function register(req: Request, res: Response) {
   const { email, password } = req.body
@@ -33,6 +34,37 @@ export async function login(req: Request, res: Response) {
     }
 
     const user = nhost.auth.getUser()
+
+
+
+
+    
+    const token = result.session?.accessToken
+
+    // Se tivermos token e user.id, registra o login
+    if (token && user?.id) {
+      const gqlClient = new GraphQLClient(nhost.graphql.url, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      const insertLoginLog = gql`
+        mutation InsertLoginLog($user_id: uuid!) {
+          insert_syschat_login_log_one(object: { user_id: $user_id }) {
+            ll_id
+          }
+        }
+      `
+
+      await gqlClient.request(insertLoginLog, {
+        user_id: user.id
+      })
+    }
+
+
+
+
 
     return res.status(200).json({
       session: result.session,
