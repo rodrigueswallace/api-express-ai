@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import { nhost } from '../services/nhost'
 import { GraphQLClient, gql } from 'graphql-request'
+import { publishToQueue } from '../services/rabbitmq'
 
 export async function register(req: Request, res: Response) {
   const { email, password } = req.body
@@ -13,12 +14,20 @@ export async function register(req: Request, res: Response) {
     }
 
     const user = nhost.auth.getUser()
+    
+    if (user) {
+      publishToQueue('user.registered', {
+        userId: user.id,
+        email: user.email
+      })
+    }
 
     return res.status(201).json({
       session: result.session,
       user
     })
   } catch (err) {
+    console.log(err)
     return res.status(500).json({ error: 'Erro ao cadastrar usuário' })
   }
 }
